@@ -1,0 +1,65 @@
+----creating final table
+ CREATE OR REPLACE TABLE bright.coffee.coffe_shop_final
+  AS
+ SELECT
+    transaction_id AS transaction_id,
+    CAST (transaction_date AS DATE) AS transaction_date,
+    CASE 
+       DAYOFWEEK(CAST(transaction_date AS DATE))
+       WHEN 1 THEN 'Sunday'
+        WHEN 2 THEN 'Monday'
+        WHEN 3 THEN 'Tuesday'
+        WHEN 4 THEN 'Wednesday'
+        WHEN 5 THEN 'Thursday'
+        WHEN 6 THEN 'Friday'
+        WHEN 7 THEN 'Saturday'
+        ELSE 'invalid'
+        END AS DayName,
+    
+    DAYOFWEEK(CAST(transaction_date AS DATE)) AS DayNumber,
+    DATE_FORMAT(CAST(transaction_date AS DATE), 'MMMM') AS month_name,
+    MONTH(CAST(transaction_date AS DATE)) AS month_number,
+    YEAR(CAST(transaction_date AS DATE)) AS year,
+    WEEKOFYEAR(CAST(transaction_date AS DATE)) AS week_number,
+    CAST(transaction_time AS TIMESTAMP) AS transaction_time,
+    HOUR(CAST(transaction_time AS TIMESTAMP)) AS transaction_hour,
+   CASE
+      WHEN HOUR(transaction_time) BETWEEN 6 AND 9 THEN '06:00_09:00'
+      WHEN HOUR(transaction_time) BETWEEN 9 AND 11 THEN'09:00_12:00'
+      WHEN HOUR(transaction_time) BETWEEN 12 AND 14 THEN '12:00_15:00'
+      WHEN HOUR(transaction_time) BETWEEN 15 AND 17 THEN '15:00_18:00'
+      WHEN HOUR(transaction_time) BETWEEN 18 AND 20 THEN '18:00_21:00'
+      END AS time_period,
+    CASE
+      WHEN HOUR(transaction_time) BETWEEN 06 AND 09 THEN 'morning'
+      WHEN HOUR(transaction_time) BETWEEN 10 AND 12 THEN 'afternoon'
+      WHEN HOUR(transaction_time) BETWEEN 13 AND 15 THEN 'evening'
+      WHEN HOUR(transaction_time) BETWEEN 16 AND 18 THEN 'night'
+      WHEN HOUR(transaction_time) BETWEEN 19 AND 20 THEN 'closing hours'
+      ELSE 'late'
+       END AS transaction_time_bucket,
+       CAST(transaction_qty AS INT) AS transaction_qty,
+       store_id AS store_id,
+       store_location AS store_location,
+       product_id AS product_id,
+       product_category AS product_category,
+       product_type AS product_type,
+       product_detail AS product_detail,
+       CAST(REPLACE(CAST(unit_price AS STRING),',','') AS DOUBLE) AS unit_price_clean,
+       CAST(transaction_qty AS INT) * CAST(REPLACE(CAST(unit_price AS STRING),',','') AS DECIMAL(10,2)) AS total_amount,
+      
+      CASE
+         WHEN transaction_qty =1 THEN 'low'
+        WHEN transaction_qty BETWEEN 2 AND 3 THEN 'medium'
+        ELSE 'high'
+        END AS transaction_qty_category,
+      CASE
+       WHEN (transaction_qty * unit_price) > 10000 THEN 'High'
+       WHEN (transaction_qty * unit_price) BETWEEN 5000 AND 10000 THEN 'Medium'
+       ELSE 'low'
+       END AS sales_category
+ FROM bright.coffee.coffe_shop;
+
+ 
+SELECT*
+FROM bright.coffee.coffe_shop_final;
